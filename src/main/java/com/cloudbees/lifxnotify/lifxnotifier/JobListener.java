@@ -21,6 +21,7 @@ public class JobListener extends RunListener<Run> {
     static final int BLUE = 181;
     static LFXNetworkContext localNetworkContext;
 
+    /** kick off the auto discovery - this can take a minute - so start it early */
     static {
         localNetworkContext = LFXClient.getSharedInstance(new Context()).getLocalNetworkContext();
         localNetworkContext.connect();
