@@ -33,4 +33,14 @@
     </pluginRepository>
   </pluginRepositories>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.github.besherman</groupId>
+            <artifactId>lifx-sdk-java</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
+
+
+
 </project>
