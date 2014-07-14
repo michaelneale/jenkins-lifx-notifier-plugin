@@ -16,7 +16,7 @@
   <description>
         Discover your smart LIFX lightbulbs on the network and use them as a build notifier.
     </description>
-  <url>https://github.com/jenkinsci/lifx-notifier-plugin</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/LIFX+notifier+plugin</url>
 
   <licenses>
     <license>
