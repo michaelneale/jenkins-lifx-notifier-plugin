@@ -13,3 +13,5 @@ mvn hpi:run
 ```
 
 This will discover lights on your network - if you have problems, ensure you can access lights from the iphone/android app.
+
+The Jenkins <a href="https://wiki.jenkins-ci.org/display/JENKINS/LIFX+notifier+plugin">wiki</a> page for this.
