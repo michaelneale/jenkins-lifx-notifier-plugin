@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>lifx-notifier</artifactId>
-  <version>0.2</version>
+  <version>0.3-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>LIFX notifier - smart lightbulbs build indicator</name>
@@ -29,7 +29,7 @@
         <connection>scm:git:git://github.com/jenkinsci/lifx-notifier-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/lifx-notifier-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/lifx-notifier-plugin</url>
-        <tag>lifx-notifier-0.2</tag>
+        <tag>HEAD</tag>
   </scm>
 
   <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
