@@ -6,7 +6,6 @@
     <version>1.554.2</version><!-- which version of Jenkins is this plugin built against? Users must have at least this Jenkins version to use this plugin. -->
   </parent>
 
-  <groupId>com.cloudbees.lifxnotify</groupId>
   <artifactId>lifx-notifier</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
