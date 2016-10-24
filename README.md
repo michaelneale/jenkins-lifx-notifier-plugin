@@ -2,6 +2,7 @@
 
 Install this plugin and be dazzled. 
 It will set it red when bad, green when good, pale white when building.
+Colors can be changed in job configuration.
 
 <img src="https://wiki.jenkins-ci.org/download/attachments/73532169/Screen+Shot+2014-07-14+at+7.17.09+pm.png?version=1&modificationDate=1405329559000"/>
 
