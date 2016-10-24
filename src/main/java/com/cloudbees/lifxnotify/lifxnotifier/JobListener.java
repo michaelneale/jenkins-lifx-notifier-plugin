@@ -1,31 +1,27 @@
 package com.cloudbees.lifxnotify.lifxnotifier;
 
-import android.content.Context;
+import com.github.besherman.lifx.LFXClient;
+import com.github.besherman.lifx.LFXHSBKColor;
+import com.github.besherman.lifx.LFXLight;
 import hudson.Extension;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.model.Run;
 import hudson.model.listeners.RunListener;
-import lifx.java.android.client.LFXClient;
-import lifx.java.android.entities.LFXHSBKColor;
-import lifx.java.android.light.LFXLight;
-import lifx.java.android.network_context.LFXNetworkContext;
+
+import java.awt.*;
+import java.io.IOException;
+import java.util.Iterator;
 
 @Extension
 @SuppressWarnings("rawtypes")
 public class JobListener extends RunListener<Run> {
 
+    private static final int RED = 0;
+    private static final int GREEN = 120;
+    private static final int BLUE = 181;
 
-    static final int RED = 0;
-    static final int GREEN = 120;
-    static final int BLUE = 181;
-    static LFXNetworkContext localNetworkContext;
-
-    /** kick off the auto discovery - this can take a minute - so start it early */
-    static {
-        localNetworkContext = LFXClient.getSharedInstance(new Context()).getLocalNetworkContext();
-        localNetworkContext.connect();
-    }
+    // TODO: 10/24/16 use 1 format for log messages everywhere. "LIFX: message"
 
     public JobListener() {
         super(Run.class);
@@ -55,10 +51,23 @@ public class JobListener extends RunListener<Run> {
     }
 
     private void changeColour(int hue, float brightness, float saturation) {
-        for( LFXLight aLight : localNetworkContext.getAllLightsCollection().getLights()) {
-            System.out.println("------> LIFX LIGHT changing to hue: " + hue);
-            LFXHSBKColor color = LFXHSBKColor.getColor(hue, saturation, brightness, 3500);
-            aLight.setColor( color);
+        LFXClient client = new LFXClient();
+        try {
+            client.open(true);
+            for (LFXLight light : client.getLights()) {
+                System.out.format("------> LIFX: Setting hue(\'%s\') on bulb(\'%s\').", hue, light.getLabel());
+                LFXHSBKColor color = new LFXHSBKColor(hue, saturation, brightness, 3500);
+                light.setPower(true);
+                light.setColor(color);
+            }
+        } catch (IOException e) {
+            // TODO: 10/24/16 print error with speacial unicode character at the start (LIFX character)
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO: 10/24/16 print error with speacial unicode character at the start (LIFX character)
+            e.printStackTrace();
+        } finally {
+            client.close();
         }
     }
 
