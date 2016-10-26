@@ -9,9 +9,7 @@ import hudson.model.TaskListener;
 import hudson.model.Run;
 import hudson.model.listeners.RunListener;
 
-import java.awt.*;
 import java.io.IOException;
-import java.util.Iterator;
 
 @Extension
 @SuppressWarnings("rawtypes")
@@ -21,13 +19,13 @@ public class JobListener extends RunListener<Run> {
     private static final int GREEN = 120;
     private static final int BLUE = 181;
 
-    // TODO: 10/24/16 use 1 format for log messages everywhere. "LIFX: message"
+    private static final String LOG_PREFIX = "\\u00BF LIFX: "; // \u00BF = "Inverted question mark"
 
     public JobListener() {
         super(Run.class);
-        System.out.println("LIFX build indicator loading. " +
+        printToConsole("build indicator loading. " +
                 "If colours don't change, check you can adjust colour from phone/app. " +
-                "Lights are automatically discovered");
+                "Lights are automatically discovered.");
     }
 
     @Override
@@ -37,7 +35,7 @@ public class JobListener extends RunListener<Run> {
 
     @Override
     public void onCompleted(Run r, TaskListener listener) {
-        System.out.println("Attempting to Change the Colour of LIFX lights.");
+        printToConsole("Attempting to Change the Colour of LIFX lights.");
         if (r.getResult().isBetterOrEqualTo(Result.SUCCESS)) {
             changeColour(GREEN);
         } else {
@@ -45,6 +43,9 @@ public class JobListener extends RunListener<Run> {
         }
     }
 
+    @Override
+    public void onFinalized(Run r) {
+    }
 
     private void changeColour(int hue) {
         changeColour(hue, 1.0f, 1.0f);
@@ -55,25 +56,23 @@ public class JobListener extends RunListener<Run> {
         try {
             client.open(true);
             for (LFXLight light : client.getLights()) {
-                System.out.format("------> LIFX: Setting hue(\'%s\') on bulb(\'%s\').", hue, light.getLabel());
+                printToConsole(String.format("Setting hue(\'%s\') on bulb(\'%s\').", hue, light.getLabel()));
                 LFXHSBKColor color = new LFXHSBKColor(hue, saturation, brightness, 3500);
                 light.setPower(true);
                 light.setColor(color);
             }
         } catch (IOException e) {
-            // TODO: 10/24/16 print error with speacial unicode character at the start (LIFX character)
+            printToConsole(e.getMessage());
             e.printStackTrace();
         } catch (InterruptedException e) {
-            // TODO: 10/24/16 print error with speacial unicode character at the start (LIFX character)
+            printToConsole(e.getMessage());
             e.printStackTrace();
         } finally {
             client.close();
         }
     }
 
-
-    @Override
-    public void onFinalized(Run r) {
+    private void printToConsole(String message) {
+        System.out.println(LOG_PREFIX + message);
     }
-
 }
