@@ -1,0 +1,48 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+        xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:section title="LIFX Success color">
+        <f:radioBlock name="groupColorSuccess" title="Predefined"
+                value="GROUP_COLOR_SUCCESS"
+                checked="${instance.isGroupColorSuccess('GROUP_COLOR_SUCCESS')}" inline="true">
+            <f:nested>
+                <f:entry title="Select:" field="colorSuccess">
+                    <f:select/>
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
+
+        <f:radioBlock name="groupColorSuccess" title="Custom"
+                value="GROUP_COLOR_SUCCESS_CUSTOM"
+                checked="${instance.isGroupColorSuccess('GROUP_COLOR_SUCCESS_CUSTOM')}" inline="true">
+            <f:nested>
+                <f:entry title="RRGGBB:" field="colorSuccessCustom">
+                    <f:textbox default="00ff00"/>
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
+    </f:section>
+
+    <f:section title="LIFX Failure color">
+        <f:radioBlock name="groupColorFailure" title="Predefined"
+                value="GROUP_COLOR_FAILURE"
+                checked="${instance.isGroupColorFailure('GROUP_COLOR_FAILURE')}" inline="true">
+            <f:nested>
+                <f:entry title="Select:" field="colorFailure">
+                    <f:select/>
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
+
+        <f:radioBlock name="groupColorFailure" title="Custom"
+                value="GROUP_COLOR_FAILURE_CUSTOM"
+                checked="${instance.isGroupColorFailure('GROUP_COLOR_FAILURE_CUSTOM')}" inline="true">
+            <f:nested>
+                <f:entry title="RRGGBB:" field="colorFailureCustom">
+                    <f:textbox default="ff0000"/>
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
+    </f:section>
+</j:jelly>

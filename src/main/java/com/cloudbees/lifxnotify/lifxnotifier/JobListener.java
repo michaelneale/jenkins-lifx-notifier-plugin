@@ -56,7 +56,8 @@ public class JobListener extends RunListener<Run> {
         try {
             client.open(true);
             for (LFXLight light : client.getLights()) {
-                printToConsole(String.format("Setting hue(\'%s\') on bulb(\'%s\').", hue, light.getLabel()));
+                printToConsole(String.format("Setting hue(\'%s\') on bulb(\'%s\').", hue,
+                        light.getLabel()));
                 LFXHSBKColor color = new LFXHSBKColor(hue, saturation, brightness, 3500);
                 light.setPower(true);
                 light.setColor(color);
