@@ -1,13 +1,25 @@
 package com.cloudbees.lifxnotify.lifxnotifier;
 
 import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.tasks.BuildWrapper;
-import hudson.tasks.BuildWrapperDescriptor;
+import hudson.model.BuildListener;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Notifier;
+import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
+import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -21,20 +33,12 @@ import java.io.IOException;
  * <p>
  * Created by vgaidarji on 10/26/16.
  */
-public class LifxNotifier extends BuildWrapper {
+public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
     private static final String GROUP_COLOR_SUCCESS = "GROUP_COLOR_SUCCESS";
     private static final String GROUP_COLOR_SUCCESS_CUSTOM = "GROUP_COLOR_SUCCESS_CUSTOM";
     private static final String GROUP_COLOR_FAILURE = "GROUP_COLOR_FAILURE";
     private static final String GROUP_COLOR_FAILURE_CUSTOM = "GROUP_COLOR_FAILURE_CUSTOM";
-
-    private final String groupColorSuccess;
-    private final String groupColorFailure;
-    private final String colorSuccess;
-    private final String colorFailure;
-    private final String colorSuccessCustom;
-    private final String colorFailureCustom;
-
     private static final List<String> COLORS = new ArrayList<String>();
 
     static {
@@ -48,6 +52,13 @@ public class LifxNotifier extends BuildWrapper {
         COLORS.add("yellow");
         COLORS.add("white");
     }
+
+    private final String groupColorSuccess;
+    private final String groupColorFailure;
+    private final String colorSuccess;
+    private final String colorFailure;
+    private final String colorSuccessCustom;
+    private final String colorFailureCustom;
 
     @DataBoundConstructor
     public LifxNotifier(String groupColorSuccess, String groupColorFailure,
@@ -87,6 +98,59 @@ public class LifxNotifier extends BuildWrapper {
         return colorFailureCustom;
     }
 
+    @Override
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+        // in progress. not handled yet (LifxNotifierState.IN_PROGRESS)
+        return true;
+    }
+
+    @Override
+    public boolean perform(AbstractBuild<?, ?> build,
+            Launcher launcher,
+            BuildListener listener) {
+        return perform(build, listener, false);
+    }
+
+    @Override
+    public void perform(@Nonnull Run<?, ?> run,
+            @Nonnull FilePath workspace,
+            @Nonnull Launcher launcher,
+            @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        if (!perform(run, listener, false)) {
+            run.setResult(Result.FAILURE);
+        }
+    }
+
+    private boolean perform(Run<?, ?> run, TaskListener listener, boolean disableInProgress) {
+        LifxNotifierState state;
+        PrintStream logger = listener.getLogger();
+        Result result = run.getResult();
+        if (result == null && disableInProgress) {
+            return true;
+        } else if (result == null) {
+            state = LifxNotifierState.IN_PROGRESS;
+            logger.println("IN PROGRESS");
+        } else if (result.equals(Result.SUCCESS)) {
+            state = LifxNotifierState.SUCCESSFUL;
+            logger.println("SUCCESSFUL " + colorSuccess + ", " + colorSuccessCustom);
+        } else if (result.equals(Result.NOT_BUILT)) {
+            logger.println("NOT BUILT");
+            return true;
+        } else {
+            state = LifxNotifierState.FAILED;
+            logger.println("FAILED " + colorFailure + ", " + colorFailureCustom);
+        }
+
+        return processJenkinsEvent(run, listener, state);
+    }
+
+    private boolean processJenkinsEvent(
+            final Run<?, ?> run,
+            final TaskListener listener,
+            final LifxNotifierState state) {
+        return true;
+    }
+
     /**
      * Identifies which option from "color success group" is selected.
      */
@@ -103,13 +167,17 @@ public class LifxNotifier extends BuildWrapper {
         return this.groupColorFailure.equalsIgnoreCase(groupColorFailure) ? "true" : "";
     }
 
+    public BuildStepMonitor getRequiredMonitorService() {
+        return BuildStepMonitor.NONE;
+    }
+
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
 
     @Extension
-    public static final class DescriptorImpl extends BuildWrapperDescriptor {
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         public DescriptorImpl() {
             load();
         }
@@ -119,14 +187,13 @@ public class LifxNotifier extends BuildWrapper {
             return "Lifx notifier";
         }
 
-        @SuppressWarnings("unused")
-        public String getDefaultColorSuccessCustom() {
-            return "00ff00";
-        }
-
-        @SuppressWarnings("unused")
-        public String getDefaultColorFailureCustom() {
-            return "ff0000";
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+            // to persist global configuration information,
+            // set that to properties and call save().
+            // propertyName = formData.getString("propertyName");
+            save();
+            return super.configure(req, formData);
         }
 
         @SuppressWarnings("unused")
@@ -165,14 +232,8 @@ public class LifxNotifier extends BuildWrapper {
             return models;
         }
 
-        public boolean isApplicable(AbstractProject<?, ?> item) {
+        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
-        }
-
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            save();
-            return super.configure(req, formData);
         }
     }
 }
