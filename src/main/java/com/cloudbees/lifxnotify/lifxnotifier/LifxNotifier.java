@@ -53,6 +53,7 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         COLORS.add("white");
     }
 
+    private final LifxNotifierInProgress notifyInProgress;
     private final String groupColorSuccess;
     private final String groupColorFailure;
     private final String colorSuccess;
@@ -61,9 +62,11 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
     private final String colorFailureCustom;
 
     @DataBoundConstructor
-    public LifxNotifier(String groupColorSuccess, String groupColorFailure,
+    public LifxNotifier(LifxNotifierInProgress notifyInProgress,
+            String groupColorSuccess, String groupColorFailure,
             String colorSuccess, String colorFailure,
             String colorSuccessCustom, String colorFailureCustom) {
+        this.notifyInProgress = notifyInProgress;
         this.groupColorSuccess =
                 groupColorSuccess == null ? GROUP_COLOR_SUCCESS_CUSTOM : groupColorSuccess;
         this.groupColorFailure =
@@ -96,6 +99,41 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
     public String getColorFailureCustom() {
         return colorFailureCustom;
+    }
+
+    @SuppressWarnings("unused")
+    public LifxNotifierInProgress getNotifyInProgress() {
+        return notifyInProgress;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isNotifyInProgress() {
+        return notifyInProgress != null;
+    }
+
+    /**
+     * Identifies which option from "color success group" is selected.
+     */
+    @SuppressWarnings("unused")
+    public String isGroupColorSuccess(String groupColorSuccess) {
+        return this.groupColorSuccess.equalsIgnoreCase(groupColorSuccess) ? "true" : "";
+    }
+
+    /**
+     * Identifies which option from "color failure group" is selected.
+     */
+    @SuppressWarnings("unused")
+    public String isGroupColorFailure(String groupColorFailure) {
+        return this.groupColorFailure.equalsIgnoreCase(groupColorFailure) ? "true" : "";
+    }
+
+    public BuildStepMonitor getRequiredMonitorService() {
+        return BuildStepMonitor.NONE;
+    }
+
+    @Override
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl) super.getDescriptor();
     }
 
     @Override
@@ -151,31 +189,6 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         return true;
     }
 
-    /**
-     * Identifies which option from "color success group" is selected.
-     */
-    @SuppressWarnings("unused")
-    public String isGroupColorSuccess(String groupColorSuccess) {
-        return this.groupColorSuccess.equalsIgnoreCase(groupColorSuccess) ? "true" : "";
-    }
-
-    /**
-     * Identifies which option from "color failure group" is selected.
-     */
-    @SuppressWarnings("unused")
-    public String isGroupColorFailure(String groupColorFailure) {
-        return this.groupColorFailure.equalsIgnoreCase(groupColorFailure) ? "true" : "";
-    }
-
-    public BuildStepMonitor getRequiredMonitorService() {
-        return BuildStepMonitor.NONE;
-    }
-
-    @Override
-    public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) super.getDescriptor();
-    }
-
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         public DescriptorImpl() {
@@ -215,6 +228,11 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         }
 
         @SuppressWarnings("unused")
+        public ListBoxModel doFillColorInProgressItems() {
+            return getColors();
+        }
+
+        @SuppressWarnings("unused")
         public ListBoxModel doFillColorSuccessItems() {
             return getColors();
         }
@@ -234,6 +252,19 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
+        }
+    }
+
+    public static class LifxNotifierInProgress {
+        private final String colorInProgress;
+
+        @DataBoundConstructor
+        public LifxNotifierInProgress(String colorInProgress) {
+            this.colorInProgress = colorInProgress;
+        }
+
+        public String getColorInProgress() {
+            return colorInProgress;
         }
     }
 }
