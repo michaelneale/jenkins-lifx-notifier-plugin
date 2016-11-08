@@ -28,6 +28,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
+import static com.cloudbees.lifxnotify.lifxnotifier.LifxNotifierState.IN_PROGRESS;
+
 /**
  * Lifx configuration view.
  * <p>
@@ -138,15 +140,15 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
-        // in progress. not handled yet (LifxNotifierState.IN_PROGRESS)
-        return true;
+        return !isNotifyInProgress()
+                || processJenkinsEvent(build, listener, IN_PROGRESS);
     }
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build,
             Launcher launcher,
             BuildListener listener) {
-        return perform(build, listener, false);
+        return perform(build, listener, !isNotifyInProgress());
     }
 
     @Override
@@ -161,22 +163,17 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
     private boolean perform(Run<?, ?> run, TaskListener listener, boolean disableInProgress) {
         LifxNotifierState state;
-        LifxNotifierLogger logger = new LifxNotifierLogger(listener);
         Result result = run.getResult();
         if (result == null && disableInProgress) {
             return true;
         } else if (result == null) {
-            state = LifxNotifierState.IN_PROGRESS;
-            logger.info("IN PROGRESS");
+            state = IN_PROGRESS;
         } else if (result.equals(Result.SUCCESS)) {
             state = LifxNotifierState.SUCCESSFUL;
-            logger.info("SUCCESSFUL");
         } else if (result.equals(Result.NOT_BUILT)) {
-            logger.info("NOT BUILT");
             return true;
         } else {
             state = LifxNotifierState.FAILED;
-            logger.info("FAILED");
         }
 
         return processJenkinsEvent(run, listener, state);
@@ -186,6 +183,17 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
             final Run<?, ?> run,
             final TaskListener listener,
             final LifxNotifierState state) {
+        LifxNotifierLogger logger = new LifxNotifierLogger(listener);
+        logger.info("Build " + state.toString());
+        switch (state) {
+            case IN_PROGRESS:
+                break;
+            case SUCCESSFUL:
+                break;
+            case FAILED:
+                break;
+        }
+
         return true;
     }
 
