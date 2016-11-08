@@ -1,5 +1,8 @@
 package com.cloudbees.lifxnotify.lifxnotifier;
 
+import com.github.besherman.lifx.LFXClient;
+import com.github.besherman.lifx.LFXHSBKColor;
+import com.github.besherman.lifx.LFXLight;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -15,7 +18,7 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import java.io.PrintStream;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -42,6 +45,7 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
     private static final String GROUP_COLOR_FAILURE = "GROUP_COLOR_FAILURE";
     private static final String GROUP_COLOR_FAILURE_CUSTOM = "GROUP_COLOR_FAILURE_CUSTOM";
     private static final List<String> COLORS = new ArrayList<String>();
+    public static final String NO_COLOR = "";
 
     static {
         COLORS.add("blue");
@@ -49,7 +53,7 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         COLORS.add("green");
         COLORS.add("orange");
         COLORS.add("pink");
-        COLORS.add("purple");
+        // COLORS.add("purple"); // no such color in jawa.awt.Color class
         COLORS.add("red");
         COLORS.add("yellow");
         COLORS.add("white");
@@ -140,6 +144,10 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+        LifxNotifierLogger logger = new LifxNotifierLogger(listener);
+        logger.info("Build indicator is loading. " +
+                "If colors don't change, please check if you can adjust color from phone/app. " +
+                "Lights are automatically discovered.");
         return !isNotifyInProgress()
                 || processJenkinsEvent(build, listener, IN_PROGRESS);
     }
@@ -183,18 +191,63 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
             final Run<?, ?> run,
             final TaskListener listener,
             final LifxNotifierState state) {
-        LifxNotifierLogger logger = new LifxNotifierLogger(listener);
-        logger.info("Build " + state.toString());
-        switch (state) {
-            case IN_PROGRESS:
-                break;
-            case SUCCESSFUL:
-                break;
-            case FAILED:
-                break;
+        LifxColor color = getColorForState(state);
+        if (color != LifxColor.NO_COLOR) {
+            // TODO convert RRGGBB String to hue
+            int hue = 0;
+            changeColor(hue, listener);
         }
 
         return true;
+    }
+
+    private LifxColor getColorForState(final LifxNotifierState state) {
+        switch (state) {
+            case IN_PROGRESS:
+                if (isNotifyInProgress()) {
+                    return new LifxColor(notifyInProgress.colorInProgress, false);
+                }
+                return LifxColor.NO_COLOR;
+            case SUCCESSFUL:
+                if (GROUP_COLOR_SUCCESS.equals(groupColorSuccess)) {
+                    return new LifxColor(colorSuccess, false);
+                } else {
+                    return new LifxColor(colorSuccessCustom, true);
+                }
+            case FAILED:
+                if (GROUP_COLOR_FAILURE.equals(groupColorFailure)) {
+                    return new LifxColor(colorFailure, false);
+                } else {
+                    return new LifxColor(colorFailureCustom, true);
+                }
+            default:
+                return LifxColor.NO_COLOR;
+        }
+    }
+
+    private void changeColor(int hue, final TaskListener listener) {
+        changeColor(hue, 1.0f, 1.0f, listener);
+    }
+
+    private void changeColor(int hue, float brightness, float saturation,
+            final TaskListener listener) {
+        LifxNotifierLogger logger = new LifxNotifierLogger(listener);
+        LFXClient client = new LFXClient();
+        try {
+            client.open(true);
+            for (LFXLight light : client.getLights()) {
+                logger.info(
+                        "Attempting to change the color to " + hue + ", on " + light.getLabel());
+                LFXHSBKColor color = new LFXHSBKColor(hue, saturation, brightness, 3500);
+                light.setPower(true);
+                light.setColor(color);
+            }
+        } catch (IOException | InterruptedException e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            client.close();
+        }
     }
 
     @Extension
