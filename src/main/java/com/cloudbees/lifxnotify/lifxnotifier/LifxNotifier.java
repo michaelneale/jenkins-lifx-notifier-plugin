@@ -1,8 +1,6 @@
 package com.cloudbees.lifxnotify.lifxnotifier;
 
-import com.github.besherman.lifx.LFXClient;
-import com.github.besherman.lifx.LFXHSBKColor;
-import com.github.besherman.lifx.LFXLight;
+import android.content.Context;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -23,6 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
+import lifx.java.android.client.LFXClient;
+import lifx.java.android.entities.LFXHSBKColor;
+import lifx.java.android.light.LFXLight;
+import lifx.java.android.network_context.LFXNetworkContext;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -45,7 +47,14 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
     private static final String GROUP_COLOR_FAILURE = "GROUP_COLOR_FAILURE";
     private static final String GROUP_COLOR_FAILURE_CUSTOM = "GROUP_COLOR_FAILURE_CUSTOM";
     private static final List<String> COLORS = new ArrayList<String>();
-    public static final String NO_COLOR = "";
+
+    static LFXNetworkContext localNetworkContext;
+
+    /* kick off the auto discovery - this can take a minute - so start it early */
+    static {
+        localNetworkContext = LFXClient.getSharedInstance(new Context()).getLocalNetworkContext();
+        localNetworkContext.connect();
+    }
 
     static {
         COLORS.add("blue");
@@ -232,21 +241,11 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
     private void changeColor(int hue, float brightness, float saturation,
             final TaskListener listener) {
         LifxNotifierLogger logger = new LifxNotifierLogger(listener);
-        LFXClient client = new LFXClient();
-        try {
-            client.open(true);
-            for (LFXLight light : client.getLights()) {
-                logger.info(
-                        "Attempting to change the color to " + hue + ", on " + light.getLabel());
-                LFXHSBKColor color = new LFXHSBKColor(hue, saturation, brightness, 3500);
-                light.setPower(true);
-                light.setColor(color);
-            }
-        } catch (IOException | InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
-        } finally {
-            client.close();
+        for (LFXLight aLight : localNetworkContext.getAllLightsCollection().getLights()) {
+            logger.info(
+                    "Attempting to change the color to " + hue + ", on " + aLight.getLabel());
+            LFXHSBKColor color = LFXHSBKColor.getColor(hue, saturation, brightness, 3500);
+            aLight.setColor(color);
         }
     }
 
