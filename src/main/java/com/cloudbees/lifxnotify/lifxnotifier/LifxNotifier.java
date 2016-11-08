@@ -161,22 +161,22 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
     private boolean perform(Run<?, ?> run, TaskListener listener, boolean disableInProgress) {
         LifxNotifierState state;
-        PrintStream logger = listener.getLogger();
+        LifxNotifierLogger logger = new LifxNotifierLogger(listener);
         Result result = run.getResult();
         if (result == null && disableInProgress) {
             return true;
         } else if (result == null) {
             state = LifxNotifierState.IN_PROGRESS;
-            logger.println("IN PROGRESS");
+            logger.info("IN PROGRESS");
         } else if (result.equals(Result.SUCCESS)) {
             state = LifxNotifierState.SUCCESSFUL;
-            logger.println("SUCCESSFUL " + colorSuccess + ", " + colorSuccessCustom);
+            logger.info("SUCCESSFUL");
         } else if (result.equals(Result.NOT_BUILT)) {
-            logger.println("NOT BUILT");
+            logger.info("NOT BUILT");
             return true;
         } else {
             state = LifxNotifierState.FAILED;
-            logger.println("FAILED " + colorFailure + ", " + colorFailureCustom);
+            logger.info("FAILED");
         }
 
         return processJenkinsEvent(run, listener, state);
