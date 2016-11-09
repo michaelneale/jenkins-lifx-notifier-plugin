@@ -6,7 +6,9 @@ public class LifxColor {
     private boolean isCustom;
 
     public static final LifxColor NO_COLOR = new LifxColor("", false);
-
+    /**
+     * @param isCustom true if this color should be interpreted in RRGGBB format
+     */
     public LifxColor(String color, boolean isCustom) {
         this.color = color;
         this.isCustom = isCustom;

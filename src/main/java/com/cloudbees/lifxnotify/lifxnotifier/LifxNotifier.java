@@ -34,7 +34,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 
 import static com.cloudbees.lifxnotify.lifxnotifier.LifxNotifierState.IN_PROGRESS;
-
+import static com.cloudbees.lifxnotify.lifxnotifier.Colors.*;
 /**
  * Lifx configuration view.
  * <p>
@@ -46,9 +46,9 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
     private static final String GROUP_COLOR_SUCCESS_CUSTOM = "GROUP_COLOR_SUCCESS_CUSTOM";
     private static final String GROUP_COLOR_FAILURE = "GROUP_COLOR_FAILURE";
     private static final String GROUP_COLOR_FAILURE_CUSTOM = "GROUP_COLOR_FAILURE_CUSTOM";
-    private static final List<String> COLORS = new ArrayList<String>();
+    private static final List<String> COLORS = new ArrayList<>();
 
-    static LFXNetworkContext localNetworkContext;
+    private static LFXNetworkContext localNetworkContext;
 
     /* kick off the auto discovery - this can take a minute - so start it early */
     static {
@@ -57,15 +57,14 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
     }
 
     static {
-        COLORS.add("blue");
-        COLORS.add("cyan");
-        COLORS.add("green");
-        COLORS.add("orange");
-        COLORS.add("pink");
-        // COLORS.add("purple"); // no such color in jawa.awt.Color class
-        COLORS.add("red");
-        COLORS.add("yellow");
-        COLORS.add("white");
+        COLORS.add(BLUE);
+        COLORS.add(CYAN);
+        COLORS.add(GREEN);
+        COLORS.add(ORANGE);
+        COLORS.add(PINK);
+        COLORS.add(RED);
+        COLORS.add(YELLOW);
+        COLORS.add(WHITE);
     }
 
     private final LifxNotifierInProgress notifyInProgress;
@@ -196,7 +195,7 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         return processJenkinsEvent(run, listener, state);
     }
 
-    private boolean processJenkinsEvent(
+    boolean processJenkinsEvent(
             final Run<?, ?> run,
             final TaskListener listener,
             final LifxNotifierState state) {
@@ -210,7 +209,7 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         return true;
     }
 
-    private LifxColor getColorForState(final LifxNotifierState state) {
+    LifxColor getColorForState(final LifxNotifierState state) {
         switch (state) {
             case IN_PROGRESS:
                 if (isNotifyInProgress()) {
@@ -234,11 +233,11 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         }
     }
 
-    private void changeColor(int hue, final TaskListener listener) {
+    void changeColor(int hue, final TaskListener listener) {
         changeColor(hue, 1.0f, 1.0f, listener);
     }
 
-    private void changeColor(int hue, float brightness, float saturation,
+    void changeColor(int hue, float brightness, float saturation,
             final TaskListener listener) {
         LifxNotifierLogger logger = new LifxNotifierLogger(listener);
         for (LFXLight aLight : localNetworkContext.getAllLightsCollection().getLights()) {
