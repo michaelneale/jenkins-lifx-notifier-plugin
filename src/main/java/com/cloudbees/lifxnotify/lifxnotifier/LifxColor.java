@@ -1,7 +1,9 @@
 package com.cloudbees.lifxnotify.lifxnotifier;
 
+import java.util.regex.Pattern;
 
 public class LifxColor {
+    public static final String PATTERN_RRGGBB = "^[0-9a-f]{6}$";
     private String color;
     private boolean isCustom;
 
@@ -20,5 +22,9 @@ public class LifxColor {
 
     public boolean isCustom() {
         return isCustom;
+    }
+
+    public static boolean isValid(String color) {
+        return Pattern.compile(PATTERN_RRGGBB).matcher(color).matches();
     }
 }

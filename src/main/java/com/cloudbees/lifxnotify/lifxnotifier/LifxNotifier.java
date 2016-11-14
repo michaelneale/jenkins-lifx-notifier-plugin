@@ -16,7 +16,6 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -274,6 +273,10 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
             if (value.length() == 0) {
                 return FormValidation.error("Please set the custom success color.");
             }
+
+            if (!LifxColor.isValid(value)) {
+                return FormValidation.error("Color should be in RRGGBB format. e.g: 00ff00 [0-9a-f]");
+            }
             return FormValidation.ok();
         }
 
@@ -282,6 +285,9 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
                 throws IOException, ServletException {
             if (value.length() == 0) {
                 return FormValidation.error("Please set the custom failure color.");
+            }
+            if (!LifxColor.isValid(value)) {
+                return FormValidation.error("Color should be in RRGGBB format. e.g: ff0000 [0-9a-f]");
             }
             return FormValidation.ok();
         }
