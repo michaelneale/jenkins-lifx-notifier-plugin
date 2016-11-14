@@ -23,6 +23,7 @@ class StringToColorParser {
 
     /**
      * Parses {@link LifxColor} to {@link java.awt.Color}.
+     *
      * @throws NoSuchColorException if color isn't recognized
      */
     public static Color parse(LifxColor lifxColor) throws NoSuchColorException {
@@ -31,7 +32,8 @@ class StringToColorParser {
         }
         Color color = COLORS.get(lifxColor.getColor());
         if (color == null) {
-            throw new NoSuchColorException();
+            throw new NoSuchColorException("Failed to parse `" + lifxColor.getColor()
+                    + "`. This color isn't supported.");
         }
         return color;
     }

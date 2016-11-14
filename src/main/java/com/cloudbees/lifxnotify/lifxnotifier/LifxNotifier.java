@@ -16,6 +16,7 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -34,6 +35,7 @@ import java.io.IOException;
 
 import static com.cloudbees.lifxnotify.lifxnotifier.LifxNotifierState.IN_PROGRESS;
 import static com.cloudbees.lifxnotify.lifxnotifier.Colors.*;
+
 /**
  * Lifx configuration view.
  * <p>
@@ -47,12 +49,13 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
     private static final String GROUP_COLOR_FAILURE_CUSTOM = "GROUP_COLOR_FAILURE_CUSTOM";
     private static final List<String> COLORS = new ArrayList<>();
 
-    private static LFXNetworkContext localNetworkContext;
-
     /* kick off the auto discovery - this can take a minute - so start it early */
-    static {
+    private static LFXNetworkContext localNetworkContext = connectToLocalNetworkContext();
+
+    static LFXNetworkContext connectToLocalNetworkContext() {
         localNetworkContext = LFXClient.getSharedInstance(new Context()).getLocalNetworkContext();
         localNetworkContext.connect();
+        return localNetworkContext;
     }
 
     static {
@@ -156,7 +159,7 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
                 "If colors don't change, please check if you can adjust color from phone/app. " +
                 "Lights are automatically discovered.");
         return !isNotifyInProgress()
-                || processJenkinsEvent(build, listener, IN_PROGRESS);
+                || processJenkinsEvent(listener, IN_PROGRESS);
     }
 
     @Override
@@ -191,21 +194,33 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
             state = LifxNotifierState.FAILED;
         }
 
-        return processJenkinsEvent(run, listener, state);
+        return processJenkinsEvent(listener, state);
     }
 
-    boolean processJenkinsEvent(
-            final Run<?, ?> run,
-            final TaskListener listener,
-            final LifxNotifierState state) {
+    boolean processJenkinsEvent(final TaskListener listener, final LifxNotifierState state) {
+        LifxNotifierLogger logger = new LifxNotifierLogger(listener);
         LifxColor color = getColorForState(state);
         if (color != LifxColor.NO_COLOR) {
-            // TODO convert RRGGBB String to hue
-            int hue = 0;
-            changeColor(hue, listener);
+            try {
+                changeColor(convertToHsb(color)[0], listener);
+            } catch (NoSuchColorException e) {
+                logger.error(e.getMessage());
+                return true;
+            }
         }
 
         return true;
+    }
+
+    /**
+     * Converts color (e.g.: ff00ff) to hsb array.
+     * {@link Color#RGBtoHSB(int, int, int, float[])}
+     */
+    float[] convertToHsb(LifxColor color) throws NoSuchColorException {
+        Color parsed = StringToColorParser.parse(color);
+        float[] hsb = new float[3];
+        Color.RGBtoHSB(parsed.getRed(), parsed.getGreen(), parsed.getBlue(), hsb);
+        return hsb;
     }
 
     LifxColor getColorForState(final LifxNotifierState state) {
@@ -232,18 +247,17 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         }
     }
 
-    void changeColor(int hue, final TaskListener listener) {
+    void changeColor(float hue, final TaskListener listener) {
         changeColor(hue, 1.0f, 1.0f, listener);
     }
 
-    void changeColor(int hue, float brightness, float saturation,
+    void changeColor(float hue, float brightness, float saturation,
             final TaskListener listener) {
         LifxNotifierLogger logger = new LifxNotifierLogger(listener);
         for (LFXLight aLight : localNetworkContext.getAllLightsCollection().getLights()) {
             logger.info(
-                    "Attempting to change the color to " + hue + ", on " + aLight.getLabel());
-            LFXHSBKColor color = LFXHSBKColor.getColor(hue, saturation, brightness, 3500);
-            aLight.setColor(color);
+                    "Attempting to change the color to hue=" + hue + ", on " + aLight.getLabel());
+            aLight.setColor(LFXHSBKColor.getColor(hue, saturation, brightness, 3500));
         }
     }
 
@@ -275,7 +289,8 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
             }
 
             if (!LifxColor.isValid(value)) {
-                return FormValidation.error("Color should be in RRGGBB format. e.g: 00ff00 [0-9a-f]");
+                return FormValidation.error(
+                        "Color should be in RRGGBB format. e.g: 00ff00 [0-9a-f]");
             }
             return FormValidation.ok();
         }
@@ -287,7 +302,8 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
                 return FormValidation.error("Please set the custom failure color.");
             }
             if (!LifxColor.isValid(value)) {
-                return FormValidation.error("Color should be in RRGGBB format. e.g: ff0000 [0-9a-f]");
+                return FormValidation.error(
+                        "Color should be in RRGGBB format. e.g: ff0000 [0-9a-f]");
             }
             return FormValidation.ok();
         }
