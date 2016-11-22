@@ -43,10 +43,10 @@ import static com.cloudbees.lifxnotify.lifxnotifier.Colors.*;
  */
 public class LifxNotifier extends Notifier implements SimpleBuildStep {
 
-    private static final String GROUP_COLOR_SUCCESS = "GROUP_COLOR_SUCCESS";
-    private static final String GROUP_COLOR_SUCCESS_CUSTOM = "GROUP_COLOR_SUCCESS_CUSTOM";
-    private static final String GROUP_COLOR_FAILURE = "GROUP_COLOR_FAILURE";
-    private static final String GROUP_COLOR_FAILURE_CUSTOM = "GROUP_COLOR_FAILURE_CUSTOM";
+    static final String GROUP_COLOR_SUCCESS = "GROUP_COLOR_SUCCESS";
+    static final String GROUP_COLOR_SUCCESS_CUSTOM = "GROUP_COLOR_SUCCESS_CUSTOM";
+    static final String GROUP_COLOR_FAILURE = "GROUP_COLOR_FAILURE";
+    static final String GROUP_COLOR_FAILURE_CUSTOM = "GROUP_COLOR_FAILURE_CUSTOM";
     private static final List<String> COLORS = new ArrayList<>();
 
     /* kick off the auto discovery - this can take a minute - so start it early */
