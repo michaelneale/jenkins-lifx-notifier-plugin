@@ -26,9 +26,7 @@ public class LifxNotifierTest {
 
         notifier.processJenkinsEvent(mock(TaskListener.class), state);
 
-        verify(notifier, never()).changeColor(anyInt(), any(TaskListener.class));
-        verify(notifier, never()).changeColor(anyInt(), anyFloat(), anyFloat(),
-                any(TaskListener.class));
+        verify(notifier, never()).changeColor(any(float[].class), any(TaskListener.class));
     }
 
     @Test
@@ -40,9 +38,7 @@ public class LifxNotifierTest {
 
         notifier.processJenkinsEvent(mock(TaskListener.class), state);
 
-        verify(notifier, never()).changeColor(anyInt(), any(TaskListener.class));
-        verify(notifier, never()).changeColor(anyInt(), anyFloat(), anyFloat(),
-                any(TaskListener.class));
+        verify(notifier, never()).changeColor(any(float[].class),any(TaskListener.class));
     }
 
     @Test

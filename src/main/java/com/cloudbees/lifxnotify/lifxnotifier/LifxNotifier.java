@@ -202,7 +202,7 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         LifxColor color = getColorForState(state);
         if (color != LifxColor.NO_COLOR) {
             try {
-                changeColor(convertToHsb(color)[0], listener);
+                changeColor(convertToHsb(color), listener);
             } catch (NoSuchColorException e) {
                 logger.error(e.getMessage());
                 return true;
@@ -247,17 +247,13 @@ public class LifxNotifier extends Notifier implements SimpleBuildStep {
         }
     }
 
-    void changeColor(float hue, final TaskListener listener) {
-        changeColor(hue, 1.0f, 1.0f, listener);
-    }
-
-    void changeColor(float hue, float brightness, float saturation,
-            final TaskListener listener) {
+    void changeColor(float[] hsb, final TaskListener listener) {
         LifxNotifierLogger logger = new LifxNotifierLogger(listener);
         for (LFXLight aLight : localNetworkContext.getAllLightsCollection().getLights()) {
-            logger.info(
-                    "Attempting to change the color to hue=" + hue + ", on " + aLight.getLabel());
-            aLight.setColor(LFXHSBKColor.getColor(hue, saturation, brightness, 3500));
+            float hue = hsb[0] * 360;
+            logger.info("Attempting to change the color to hsb=["
+                    + hue + ", " + hsb[1] + ", " + hsb[2] + "] on " + aLight.getLabel());
+            aLight.setColor(LFXHSBKColor.getColor(hue, hsb[1], hsb[2], 3500));
         }
     }
 
