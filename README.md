@@ -1,5 +1,6 @@
 # LIFX bulbs as build notifier
 
+[![Build Status](https://travis-ci.org/jenkinsci/lifx-notifier-plugin.svg?branch=master)](https://travis-ci.org/jenkinsci/lifx-notifier-plugin)
 [![Coverage Status](https://coveralls.io/repos/github/jenkinsci/lifx-notifier-plugin/badge.svg?branch=master)](https://coveralls.io/github/jenkinsci/lifx-notifier-plugin?branch=master) 
 [![wiki](https://img.shields.io/badge/Lifx%20notifier%20plugin-wiki-blue.svg?style=flat)](https://wiki.jenkins-ci.org/display/JENKINS/LIFX+notifier+plugin)
 
