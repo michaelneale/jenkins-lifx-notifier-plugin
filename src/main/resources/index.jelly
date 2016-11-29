@@ -2,8 +2,8 @@
   This view is used to render the installed plugins page.
 -->
 <div>
-  This plugin will use <a href="http://lifx.co">LIFX</a> smart lightbulbs as a build indicator.
+  This plugin will use <a href="http://lifx.com">LIFX</a> smart lightbulbs as a build indicator.
   It automatically discovers any lightbulbs on the network - and changes them to blue/green based on build status.
   <p/>When building - it will show a pale white light.
-  <p/>There is no configuration currently - it will show the status of the most recent build.
+  <p/>Colors can be changed in job configuration.
 </div>
